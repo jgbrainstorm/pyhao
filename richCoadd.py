@@ -145,19 +145,6 @@ def IMZrichness(ra,dec,photoz,cat,plot=True,err=True):
         pl.title('Total # of galaxies: '+str(ntot))
     return ntot*alpha[0]
 
-
-
-
-b=np.genfromtxt('bcg_list.txt',delimiter=',',skiprows=1)
-coaddfile=gl.glob('/home/jghao/research/data/coadd10_29_09/*.fit')
-coaddfile.sort()
-
-id=b[:,0]
-ra=b[:,1]
-dec=b[:,2]
-photoz=b[:,4]
-Ngals=b[:,3]
-
 def getRichness(ra,dec,photoz,err=None):
     if ra < 10:
         catid=0
@@ -192,9 +179,3 @@ def getRichness(ra,dec,photoz,err=None):
         rich=IMZrichness(ra,dec,photoz,coadd,err=err)
     return rich
 
-#getRichness(ra,dec,photoz,i)
-
-#for i in range(len(ra)):
-#    t=getRichness(ra,dec,photoz,i)
-#    pl.savefig('new_plot/'+str(long(id))+'.png')
-#    pl.close()
