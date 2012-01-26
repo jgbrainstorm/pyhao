@@ -1,6 +1,7 @@
 import pyfits as pf
 import pylab as pl
 import numpy as np
+import scipy.signal as sg
 
 def remOutlier(x):
     y=x
@@ -40,11 +41,17 @@ def wsd(x,xerr):
 
 
 def wmeano(x,xerr):
+    ok=xerr > 0
+    x=x[ok]
+    xerr=xerr[ok]
     w=1./(xerr**2)
     wm=sum(x*w)/sum(w)
     return(wm)
 
 def wsdo(x,xerr):
+    ok=xerr > 0
+    x=x[ok]
+    xerr=xerr[ok]
     w=1./(xerr**2)
     ws=np.sqrt(1./sum(w))
     return(ws)
@@ -59,8 +66,19 @@ def histhao(x,bsize=None,bedge=None):
         d=np.histogram(x,bins=nbin)
     return d
 
+def logbin_edge(x,nbins,xrange=None):
+    if xrange is None:
+        rng = np.log10(x.max()) - np.log10(x.min())
+        step = rng / float(nbins)
+        xedge = 10**np.arange(np.log10(x.min()),np.log10(x.max()),step)
+    else:
+        rng = np.log10(xrange[1]) - np.log10(xrange[0])
+        step = rng / float(nbins)
+        xedge = 10**np.arange(np.log10(xrange[0]),np.log10(xrange[1]),step)
+    return np.append(xedge,xrange[1])
 
-def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None):
+
+def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None):
     h=histhao(x,bedge=binedge) 
     nbin=len(h[0])
     xm=np.zeros(nbin)
@@ -72,21 +90,30 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None):
         if len(tt) > 0:
             xm[i]=np.mean(x[ind])
             if yerr != None:
-                ym[i]=wmean(y[ind],yerr[ind])
-                sdym[i]=wsd(y[ind],yerr[ind])
+                ym[i]=wmeano(y[ind],yerr[ind])
+                sdym[i]=wsdo(y[ind],yerr[ind])
             else:
                 ym[i]=np.mean(y[ind])
                 sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
-    if fmt:
-        pl.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+    if axes is not None:
+        if fmt:
+            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+        else:
+            axes.errorbar(xm,ym,yerr=sdym,fmt='ko')
+        if label:
+            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
     else:
-        pl.errorbar(xm,ym,yerr=sdym,fmt='ko')
-    if label:
-        pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
+        if fmt:
+            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+        else:
+            pl.errorbar(xm,ym,yerr=sdym,fmt='ko')
+        if label:
+            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
+    return xm,ym,sdym
 
 
 
-def bin_scatter(x,y,yerr=None,binsize=None,fmt=None,label=None,scatter=False):
+def bin_scatter(x,y,yerr=None,binsize=None,fmt=None,label=None,scatter=False,axes=None):
     h=histhao(x,binsize) 
     nbin=len(h[0])
     xm=np.zeros(nbin)
@@ -95,22 +122,30 @@ def bin_scatter(x,y,yerr=None,binsize=None,fmt=None,label=None,scatter=False):
     for i in range(0,len(h[0])):
         ind=(x>=h[1][i])*(x<h[1][i+1])
         tt=x[ind]
-        if len(tt) > 10:
+        if len(tt) > 2:
             xm[i]=np.mean(x[ind])
             if yerr != None:
-                ym[i]=wmean(y[ind],yerr[ind])
-                sdym[i]=wsd(y[ind],yerr[ind])
+                ym[i]=wmeano(y[ind],yerr[ind])
+                sdym[i]=wsdo(y[ind],yerr[ind])
             else:
                 ym[i]=np.mean(y[ind])
                 sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
             if scatter == True:
                 sdym[i]=np.std(y[ind])
-    if fmt:
-        pl.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+    if axes is not None:
+        if fmt:
+            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+        else:
+            axes.errorbar(xm,ym,yerr=sdym,fmt='ko')
+        if label:
+            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
     else:
-        pl.errorbar(xm,ym,yerr=sdym,fmt='ko')
-    if label:
-        pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
+        if fmt:
+            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+        else:
+            pl.errorbar(xm,ym,yerr=sdym,fmt='ko')
+        if label:
+            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
     return xm,ym,sdym
 
 
@@ -154,3 +189,19 @@ def binboxplot(x,y,binsize=None):
     pl.boxplot(data)
     pl.xticks(np.arange(1,nbin+1),np.round(xm,2))
     return 0
+
+
+def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None):
+    h,xx,yy=np.histogram2d(x,y,bins=bins,range=range,normed=normed)
+    xx=(xx[0:-1]+xx[1:])/2.
+    yy=(yy[0:-1]+yy[1:])/2.
+    pl.contourf(xx,yy,h.T,v=levels)
+    pl.colorbar()
+    return(0)
+
+
+def bin_scatter_logx(x,y,yerr=None,nbins=None,xrange=None,fmt=None,label=None,axes=None):
+    binedge = logbin_edge(x,nbins,xrange=xrange)
+    xm,ym,sdym=bin_scatter_bins(x,y,yerr=yerr,binedge=binedge,fmt=fmt,label=label,axes=axes)
+    return xm,ym,sdym
+

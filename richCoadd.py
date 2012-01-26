@@ -7,12 +7,30 @@ import rwecgmmPy as rwgmm
 import scipy.stats as sts
 import glob as gl
 
+
+Da=es.cosmology.Cosmo(h=0.7).Da
 #-----0.4L*----------
 def limi(x):
     A=np.exp(3.1638)
     k=0.1428
     lmi=A*x**k
     return(lmi)
+
+def neighbors(ra,dec,cat,radius,photoz):
+    """
+    return the ra,dec of neighbors brighter than 0.4 L*
+    """
+    depth=12
+    h=es.htm.HTM(depth)
+    imag=cat.field('model_counts')[:,3]
+    ok=imag <= limi(photoz)
+    cat=cat[ok]
+    fra=cat.field('ra')
+    fdec=cat.field('dec')
+    srad=np.rad2deg(radius/Da(0,photoz))
+    m1,m2,d12 = h.match(ra,dec,fra,fdec,srad,maxmatch=5000)
+    r12=np.deg2rad(d12)*Da(0,photoz)
+    return m1,m2,r12
 
 def gmrbgcount(cat,gmr_low,gmr_high,imag_low,imag_high):
     ra=cat.field('ra')
@@ -26,7 +44,7 @@ def gmrbgcount(cat,gmr_low,gmr_high,imag_low,imag_high):
     gmrkde=sts.gaussian_kde(gmrvalues.T)
     bgct=gmrkde.integrate_box([gmr_low,imag_low],[gmr_high,imag_high]) * dsty
     
-def GMRrichness(ra,dec,photoz,cat,plot=True,err=True,rw=True):
+def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
     fra=cat.field('ra')
     fdec=cat.field('dec')
     imag=cat.field('model_counts')[:,3]
@@ -34,11 +52,18 @@ def GMRrichness(ra,dec,photoz,cat,plot=True,err=True,rw=True):
     gmrerr=cat.field('gmr_err')
     depth=12
     h=es.htm.HTM(depth)
-    srad=np.rad2deg(1./es.cosmology.Da(0,photoz,h=0.7))
+    srad=np.rad2deg(1./Da(0,photoz))
     m1,m2,d12 = h.match(ra,dec,fra,fdec,srad,maxmatch=5000)
-    r12=np.deg2rad(d12)*es.cosmology.Da(0,photoz,h=0.7)
-    indices=(imag[m2]<=limi(photoz))
+    cimag=imag[m2[0]]
+    cgmr=gmr[m2[0]]
+    r12=np.deg2rad(d12)*Da(0,photoz)
+    if bcg is True:
+        indices=(imag[m2]<=limi(photoz))*(imag[m2]>cimag)
+    else:
+        indices=(imag[m2]<=limi(photoz))
     ntot=len(m2[indices])
+    if ntot <= 10:
+        return 0, 0, 0
     alpha=np.array([0.5,0.5])
     mu=np.array([sts.scoreatpercentile(gmr[m2[indices]],per=70),sts.scoreatpercentile(gmr[m2[indices]],per=40)])
     sigma=np.array([0.04,0.3])
@@ -53,7 +78,8 @@ def GMRrichness(ra,dec,photoz,cat,plot=True,err=True,rw=True):
         bic2=gmm.bic_ecgmm(gmr[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
         bic1=gmm.wstat(gmr[m2[indices]])[3] 
     if plot==True:
-        pl.hist(gmr[m2[indices]],bins=30,normed=True,histtype='step')
+        pl.hist(gmr[m2[indices]],bins=30,normed=True,facecolor='green',alpha=0.3)
+        pl.vlines(cgmr,0,3,color='green')
         x=np.arange(-1,5,0.01)
         srt=np.argsort(sigma)
         alpha=alpha[srt]
@@ -69,9 +95,9 @@ def GMRrichness(ra,dec,photoz,cat,plot=True,err=True,rw=True):
         pl.figtext(0.61,0.54,r'$BIC_2$: '+str(bic2))
         pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0]
+    return ntot*alpha[0],bic1,bic2
 
-def RMIrichness(ra,dec,photoz,cat,plot=True,err=True):
+def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
     fra=cat.field('ra')
     fdec=cat.field('dec')
     imag=cat.field('model_counts')[:,3]
@@ -79,10 +105,18 @@ def RMIrichness(ra,dec,photoz,cat,plot=True,err=True):
     rmierr=cat.field('rmi_err')
     depth=12
     h=es.htm.HTM(depth)
-    srad=np.rad2deg(1./es.cosmology.Da(0,photoz,h=0.7))
+    srad=np.rad2deg(1./Da(0,photoz))
     m1,m2,d12 = h.match(ra,dec,fra,fdec,srad,maxmatch=5000)
-    indices=(imag[m2]<=limi(photoz))
+    r12=np.deg2rad(d12)*Da(0,photoz)
+    cimag=imag[m2[0]]
+    crmi=rmi[m2[0]]
+    if bcg is True:
+        indices=(imag[m2]<=limi(photoz))*(imag[m2]>cimag)
+    else:
+        indices=(imag[m2]<=limi(photoz))
     ntot=len(m2[indices])
+    if ntot <= 10:
+        return 0, 0, 0
     alpha=np.array([0.5,0.5])
     mu=np.array([sts.scoreatpercentile(rmi[m2[indices]],per=70),sts.scoreatpercentile(rmi[m2[indices]],per=40)])
     sigma=np.array([0.04,0.3])
@@ -97,7 +131,8 @@ def RMIrichness(ra,dec,photoz,cat,plot=True,err=True):
         bic2=gmm.bic_ecgmm(rmi[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
         bic1=gmm.wstat(rmi[m2[indices]])[3] 
     if plot==True:
-        pl.hist(rmi[m2[indices]],bins=30,normed=True,histtype='step')
+        pl.hist(rmi[m2[indices]],bins=30,normed=True,facecolor='green',alpha=0.3)
+        pl.vlines(crmi,0,3,color='green')
         x=np.arange(-1,5,0.01)
         srt=np.argsort(sigma)
         alpha=alpha[srt]
@@ -113,9 +148,9 @@ def RMIrichness(ra,dec,photoz,cat,plot=True,err=True):
         pl.figtext(0.61,0.54,r'$BIC_2$: '+str(bic2))
         pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0]
+    return ntot*alpha[0],bic1,bic2
 
-def IMZrichness(ra,dec,photoz,cat,plot=True,err=True):
+def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
     fra=cat.field('ra')
     fdec=cat.field('dec')
     imag=cat.field('model_counts')[:,3]
@@ -123,10 +158,18 @@ def IMZrichness(ra,dec,photoz,cat,plot=True,err=True):
     imzerr=cat.field('imz_err')
     depth=12
     h=es.htm.HTM(depth)
-    srad=np.rad2deg(1./es.cosmology.Da(0,photoz,h=0.7))
+    srad=np.rad2deg(1./Da(0,photoz))
     m1,m2,d12 = h.match(ra,dec,fra,fdec,srad,maxmatch=5000)
-    indices=(imag[m2]<=limi(photoz))
+    cimag=imag[m2[0]]
+    cimz=imz[m2[0]]
+    r12=np.deg2rad(d12)*Da(0,photoz)
+    if bcg is True:
+        indices=(imag[m2]<=limi(photoz))*(imag[m2]>cimag)
+    else:
+        indices=(imag[m2]<=limi(photoz))
     ntot=len(m2[indices])
+    if ntot <= 10:
+        return 0, 0, 0
     alpha=np.array([0.5,0.5])
     mu=np.array([sts.scoreatpercentile(imz[m2[indices]],per=70),sts.scoreatpercentile(imz[m2[indices]],per=40)])
     sigma=np.array([0.04,0.3])
@@ -141,7 +184,8 @@ def IMZrichness(ra,dec,photoz,cat,plot=True,err=True):
         bic2=gmm.bic_ecgmm(imz[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
         bic1=gmm.wstat(imz[m2[indices]])[3] 
     if plot==True:
-        pl.hist(imz[m2[indices]],bins=30,normed=True,histtype='step')
+        pl.hist(imz[m2[indices]],bins=30,normed=True,facecolor='green',alpha=0.3)
+        pl.vlines(cimz,0,3,color='green')
         x=np.arange(-1,5,0.01)
         srt=np.argsort(sigma)
         alpha=alpha[srt]
@@ -157,9 +201,9 @@ def IMZrichness(ra,dec,photoz,cat,plot=True,err=True):
         pl.figtext(0.61,0.54,r'$BIC_2$: '+str(bic2))
         pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0]
+    return ntot*alpha[0],bic1,bic2
 
-def getRichness(ra,dec,photoz,err=None,rw=None):
+def getRichness(ra,dec,photoz,err=None,rw=None,bcg=True):
     if ra < 10:
         catid=0
     elif ra > 10 and ra < 20:
@@ -187,10 +231,44 @@ def getRichness(ra,dec,photoz,err=None,rw=None):
     coadd=pf.getdata('/home/jghao/research/data/coadd10_29_09/gmbcg_input_small_'+str(catid)+'.fit')
     pl.figure(figsize=(7,6))
     if photoz < 0.4:
-        rich=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw)
+        rich,bic1,bic2=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg)
     elif photoz >= 0.4 and photoz < 0.75:
-        rich=RMIrichness(ra,dec,photoz,coadd,err=err)
+        rich,bic1,bic2=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg)
     elif photoz >= 0.75:
-        rich=IMZrichness(ra,dec,photoz,coadd,err=err)
-    return rich
+        rich,bic1,bic2=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg)
+    return rich,bic1,bic2
 
+def getNeighbors(ra,dec,radius,photoz):
+    """
+    radius should be in Mpc
+    """
+    if ra < 10:
+        catid=0
+    elif ra > 10 and ra < 20:
+        catid=1
+    elif ra >20 and ra < 30:
+        catid=2
+    elif ra >30 and ra < 40:
+        catid=3
+    elif ra >40 and ra < 50:
+        catid=4
+    elif ra >50 and ra < 60:
+        catid=5
+    elif ra >300 and ra < 310:
+        catid=6
+    elif ra >310 and ra < 320:
+        catid=7
+    elif ra >320 and ra < 330:
+        catid=8
+    elif ra >330 and ra < 340:
+        catid=9
+    elif ra >340 and ra < 350:
+        catid=10
+    elif ra >350 and ra < 360:
+        catid=11
+    coadd=pf.getdata('/home/jghao/research/data/coadd10_29_09/gmbcg_input_small_'+str(catid)+'.fit')
+    m1,m2,r12=neighbors(ra,dec,coadd,radius,photoz)
+    nbra=coadd[m2].field('ra')
+    nbdec=coadd[m2].field('dec')
+    nphotoz=coadd[m2].field('photoz')
+    return nbra,nbdec,nphotoz,r12
