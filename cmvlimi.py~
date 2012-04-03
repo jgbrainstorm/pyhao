@@ -1,0 +1,63 @@
+import numpy as np
+import pyfits as pf
+import pylab as pl
+import esutil as es
+import glob as gl
+
+cosmoV = es.cosmology.Cosmo(h=0.7).V
+
+def limi(x):
+    A=np.exp(3.1638)
+    k=0.1428
+    lmi=A*x**k
+    return(lmi)
+
+def cmvlimi(x):
+    A=np.exp(3.1638)
+    k=0.1428
+    lmi=A*x**k
+    return(lmi)
+
+#-------------
+# the catalog is about 22 deg^2. full sky is 41253 deg^2. So, it is 22/41253 of the full sky. 
+
+truthCat = gl.glob('/home/jghao/research/data/des_mock/v3.04/truthCat/*.fit') 
+b=pf.getdata(truthCat[0])
+tzmag = b.field('amag')[:,3]
+ok = tzmag <= -20.5
+
+b=b[ok]
+z=b.field('z')
+zmag = b.field('omag')[:,3]
+tzmag =  b.field('amag')[:,3]
+
+zbin=np.arange(0.05,1.3,0.1)
+zmid = (zbin[:-1]+zbin[1:])/2.
+
+n = np.histogram(z,bins = zbin)[0]
+comdsty = np.zeros(len(zmid))
+limz = np.zeros(len(zmid))
+
+
+#----target comov density, choose the z = 0.2 - 0.3, abs i mag le -20.5----
+zz = (z >= 0.2)*(z<=0.3)*(tzmag <= -20.5)*(tzmag<= -20.5)
+
+zmagIn = zmag[zz]
+targetDsty = len(zmagIn)/cosmoV(0.2,0.3)
+
+
+for i in range(len(zmid)):
+    idx = (z >= zbin[i])*(z <= zbin[i+1])
+    zzmag = zmag[idx]
+    targetN = round(cosmoV(zbin[i],zbin[i+1])*targetDsty)
+    zzmag = np.sort(zzmag)
+    limz[i] = np.median(zzmag[targetN-20:])
+    
+
+pl.plot(z,zmag,'b,',alpha=0.2)
+pl.plot(z,limi(z),'r.')
+pl.plot(zmid,limz,'g.')
+pl.ylim(5,30)
+pl.xlabel('redshift')
+pl.ylabel('z-band mag')
+i=0

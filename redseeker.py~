@@ -1,0 +1,156 @@
+
+import numpy as np
+import pyfits as pf
+import pylab as pl
+import esutil as es
+import ecgmmPy as gmm
+import scipy.stats as sts
+
+#-----0.4L*----------
+def limi(x):
+    A=np.exp(3.1638)
+    k=0.1428
+    lmi=A*x**k
+    return(lmi)
+
+
+def redsker(b,idx,err=True):
+    depth=12
+    h=es.htm.HTM(depth)
+    ra=b.field('ra')
+    dec=b.field('dec')
+    photoz=b.field('z')
+    central=b.field('central')
+    gmr=b.field('omag')[:,0]-b.field('omag')[:,1]
+    rmi=b.field('omag')[:,1]-b.field('omag')[:,2]
+    imz=b.field('omag')[:,2]-b.field('omag')[:,3]
+    gmz=b.field('omag')[:,0]-b.field('omag')[:,3]
+    rmz=b.field('omag')[:,1]-b.field('omag')[:,3]
+    gmi=b.field('omag')[:,0]-b.field('omag')[:,2]
+    num=len(ra)
+    if err:
+        gmrerr=b.field('omagerr')[:,0]-b.field('omagerr')[:,1]
+        rmierr=b.field('omagerr')[:,1]-b.field('omagerr')[:,2]
+        imzerr=b.field('omagerr')[:,2]-b.field('omagerr')[:,3]
+        gmzerr=b.field('omagerr')[:,0]-b.field('omagerr')[:,3]
+        rmzerr=b.field('omagerr')[:,1]-b.field('omagerr')[:,3]
+        gmierr=b.field('omagerr')[:,0]-b.field('omagerr')[:,2]
+    else:
+        gmrerr=np.zeros(num)
+        rmierr=np.zeros(num)
+        imzerr=np.zeros(num)
+        gmzerr=np.zeros(num)
+        rmzerr=np.zeros(num)
+        gmierr=np.zeros(num)
+    iamag=b.field('amag')[:,2]
+    imag=b.field('omag')[:,2]
+    srad=np.rad2deg(1./es.cosmology.Da(0,photoz[idx],h=0.7)/(1+photoz[idx]))
+    m1,m2,d12 = h.match(ra[idx],dec[idx],ra,dec,srad,maxmatch=5000)
+    indices=(imag[m2]<=limi(photoz[idx]))*(imag[m2]>imag[m1])
+    #indices=(iamag[m2]<=-20)*(iamag[m2]>iamag[m1])
+    ntot=len(m2[indices])
+    alpha=np.array([0.5,0.5])
+    mu=np.array([sts.scoreatpercentile(gmr[m2[indices]],per=80),sts.scoreatpercentile(gmr[m2[indices]],per=30)])
+    sigma=np.array([0.04,0.3])
+    aic2=gmm.aic_ecgmm(gmr[m2[indices]],gmrerr[m2[indices]],alpha,mu,sigma)
+    aic1=gmm.wstat(gmr[m2[indices]],gmrerr[m2[indices]])[3]
+    fig=pl.figure(figsize=(15,8)) 
+    ax=fig.add_subplot(2,3,1)
+    pl.hist(gmr[m2[indices]],bins=30,normed=True,histtype='step')
+    x=np.arange(-1,5,0.01)
+    t=gmm.ecgmmplot(x,alpha,mu,sigma)
+    pl.xlabel('g - r')
+    pl.title('M200: '+str(b[idx].field('m200')))
+    pl.text(0.1,0.85,r'$\alpha$: '+str(np.round(alpha,4)),transform = ax.transAxes)
+    pl.text(0.1,0.8,r'$\mu$: '+str(np.round(mu,4)),transform = ax.transAxes)
+    pl.text(0.1,0.75,r'$\sigma$: '+str(np.round(sigma,4)),transform = ax.transAxes)
+    pl.text(0.1,0.68,r'$Ngals$: '+str(np.round(ntot*alpha[0])),transform = ax.transAxes)
+    pl.text(0.1,0.6,r'$AIC$: '+str(np.round(aic1))+', '+str(np.round(aic2)),transform = ax.transAxes)
+    alpha=np.array([0.5,0.5])
+    mu=np.array([sts.scoreatpercentile(rmi[m2[indices]],per=80),sts.scoreatpercentile(rmi[m2[indices]],per=30)])
+    sigma=np.array([0.04,0.3])
+    aic2=gmm.aic_ecgmm(rmi[m2[indices]],rmierr[m2[indices]],alpha,mu,sigma)
+    aic1=gmm.wstat(rmi[m2[indices]],rmierr[m2[indices]])[3]
+    ax=fig.add_subplot(2,3,2)
+    pl.hist(rmi[m2[indices]],bins=30,normed=True,histtype='step')
+    x=np.arange(-1,5,0.01)
+    t=gmm.ecgmmplot(x,alpha,mu,sigma)
+    pl.xlabel('r - i')
+    pl.title('photoz: '+str(photoz[idx]))
+    pl.xlim(-0.2,2.5)
+    pl.text(0.1,0.85,r'$\alpha$: '+str(np.round(alpha,4)),transform = ax.transAxes)
+    pl.text(0.1,0.8,r'$\mu$: '+str(np.round(mu,4)),transform = ax.transAxes)
+    pl.text(0.1,0.75,r'$\sigma$: '+str(np.round(sigma,4)),transform = ax.transAxes)
+    pl.text(0.1,0.68,r'$Ngals$: '+str(np.round(ntot*alpha[0])),transform = ax.transAxes)
+    pl.text(0.1,0.6,r'$AIC$: '+str(np.round(aic1))+', '+str(np.round(aic2)),transform = ax.transAxes)
+    alpha=np.array([0.5,0.5])
+    mu=np.array([sts.scoreatpercentile(imz[m2[indices]],per=60),sts.scoreatpercentile(imz[m2[indices]],per=30)])
+    sigma=np.array([0.02,0.3])
+    aic2=gmm.aic_ecgmm(imz[m2[indices]],imzerr[m2[indices]],alpha,mu,sigma)
+    aic1=gmm.wstat(imz[m2[indices]],imzerr[m2[indices]])[3]
+    ax=fig.add_subplot(2,3,3)
+    pl.hist(imz[m2[indices]],bins=30,normed=True,histtype='step')
+    x=np.arange(-1,5,0.01)
+    t=gmm.ecgmmplot(x,alpha,mu,sigma)
+    pl.xlabel('i - z')
+    pl.title('Ntot: '+str(ntot))
+    pl.xlim(-0.2,2.5)
+    pl.text(0.1,0.85,r'$\alpha$: '+str(np.round(alpha,4)),transform = ax.transAxes)
+    pl.text(0.1,0.8,r'$\mu$: '+str(np.round(mu,4)),transform = ax.transAxes)
+    pl.text(0.1,0.75,r'$\sigma$: '+str(np.round(sigma,4)),transform = ax.transAxes)
+    pl.text(0.1,0.68,r'$Ngals$: '+str(np.round(ntot*alpha[0])),transform = ax.transAxes)
+    pl.text(0.1,0.6,r'$AIC$: '+str(np.round(aic1))+', '+str(np.round(aic2)),transform = ax.transAxes)
+    alpha=np.array([0.5,0.5])
+    mu=np.array([sts.scoreatpercentile(gmz[m2[indices]],per=60),sts.scoreatpercentile(gmz[m2[indices]],per=30)])
+    sigma=np.array([0.02,0.3])
+    aic2=gmm.aic_ecgmm(gmz[m2[indices]],gmzerr[m2[indices]],alpha,mu,sigma)
+    aic1=gmm.wstat(gmz[m2[indices]],gmzerr[m2[indices]])[3]
+    ax=fig.add_subplot(2,3,4)
+    pl.hist(gmz[m2[indices]],bins=30,normed=True,histtype='step')
+    x=np.arange(-1,5,0.01)
+    t=gmm.ecgmmplot(x,alpha,mu,sigma)
+    pl.xlabel('g - z')
+    pl.text(0.1,0.85,r'$\alpha$: '+str(np.round(alpha,4)),transform = ax.transAxes)
+    pl.text(0.1,0.8,r'$\mu$: '+str(np.round(mu,4)),transform = ax.transAxes)
+    pl.text(0.1,0.75,r'$\sigma$: '+str(np.round(sigma,4)),transform = ax.transAxes)
+    pl.text(0.1,0.68,r'$Ngals$: '+str(np.round(ntot*alpha[0])),transform = ax.transAxes)
+    pl.text(0.1,0.6,r'$AIC$: '+str(np.round(aic1))+', '+str(np.round(aic2)),transform = ax.transAxes)
+    alpha=np.array([0.5,0.5])
+    mu=np.array([sts.scoreatpercentile(rmz[m2[indices]],per=60),sts.scoreatpercentile(rmz[m2[indices]],per=30)])
+    sigma=np.array([0.02,0.3])
+    aic2=gmm.aic_ecgmm(rmz[m2[indices]],rmzerr[m2[indices]],alpha,mu,sigma)
+    aic1=gmm.wstat(rmz[m2[indices]],rmzerr[m2[indices]])[3]
+    ax=fig.add_subplot(2,3,5)
+    pl.hist(rmz[m2[indices]],bins=30,normed=True,histtype='step')
+    x=np.arange(-1,5,0.01)
+    t=gmm.ecgmmplot(x,alpha,mu,sigma)
+    pl.xlabel('r - z')
+    pl.text(0.1,0.85,r'$\alpha$: '+str(np.round(alpha,4)),transform = ax.transAxes)
+    pl.text(0.1,0.8,r'$\mu$: '+str(np.round(mu,4)),transform = ax.transAxes)
+    pl.text(0.1,0.75,r'$\sigma$: '+str(np.round(sigma,4)),transform = ax.transAxes)
+    pl.text(0.1,0.68,r'$Ngals$: '+str(np.round(ntot*alpha[0])),transform = ax.transAxes)
+    pl.text(0.1,0.6,r'$AIC$: '+str(np.round(aic1))+', '+str(np.round(aic2)),transform = ax.transAxes)
+    alpha=np.array([0.5,0.5])
+    mu=np.array([sts.scoreatpercentile(gmi[m2[indices]],per=60),sts.scoreatpercentile(gmi[m2[indices]],per=30)])
+    sigma=np.array([0.02,0.3])
+    aic2=gmm.aic_ecgmm(gmi[m2[indices]],gmierr[m2[indices]],alpha,mu,sigma)
+    aic1=gmm.wstat(gmi[m2[indices]],gmierr[m2[indices]])[3]
+    ax=fig.add_subplot(2,3,6)
+    pl.hist(gmi[m2[indices]],bins=30,normed=True,histtype='step')
+    x=np.arange(-1,5,0.01)
+    t=gmm.ecgmmplot(x,alpha,mu,sigma)
+    pl.xlabel('g - i')
+    pl.text(0.1,0.85,r'$\alpha$: '+str(np.round(alpha,4)),transform = ax.transAxes)
+    pl.text(0.1,0.8,r'$\mu$: '+str(np.round(mu,4)),transform = ax.transAxes)
+    pl.text(0.1,0.75,r'$\sigma$: '+str(np.round(sigma,4)),transform = ax.transAxes)
+    pl.text(0.1,0.68,r'$Ngals$: '+str(np.round(ntot*alpha[0])),transform = ax.transAxes)
+    pl.text(0.1,0.6,r'$AIC$: '+str(np.round(aic1))+', '+str(np.round(aic2)),transform = ax.transAxes)
+    return('Plot is done!')
+
+b=pf.getdata('/home/jghao/research/des_mock/DES_Mock_v2.13_Baseline_truth_01.fit',1)
+
+idx=np.arange(len(b))
+idd=idx[b.field('central') == 1]
+
+t=redsker(b,idd[288])
+#pl.savefig('/home/jghao/research/presentation/DES_collab_FNAL10/0.71.png')
