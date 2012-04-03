@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import numpy as np
 import pyfits as pf
 import pylab as pl
@@ -6,7 +7,7 @@ import ecgmmPy as gmm
 import rwecgmmPy as rwgmm
 import scipy.stats as sts
 import glob as gl
-
+import healpy as hp
 
 Da=es.cosmology.Cosmo(h=0.7).Da
 #-----0.4L*----------
@@ -15,6 +16,13 @@ def limi(x):
     k=0.1428
     lmi=A*x**k
     return(lmi)
+
+def comovlim(x):
+    polycoeff = np.array([  7.24235186, -29.70849265,  47.82343782, -33.93019772,4.29971516,  10.31565436,  16.54869522])
+    lmz=np.polyval(polycoeff,x)
+    return(lmz)
+
+
 
 def neighbors(ra,dec,cat,radius,photoz):
     """
@@ -257,8 +265,9 @@ def ZMYrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.title('Total # of galaxies: '+str(ntot))
     return ntot*alpha[0],bic1,bic2
 
-def getRich(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True):
-    mock = pf.getdata('/home/jghao/research/data/des_mock/v3.04/obsCat/DES_Mock_v3.04_Baseline_06.fit')
+
+
+def getRich(ra,dec,photoz,mock=None,err=True,rw=True,bcg=True,plot=True):    
     if plot == True:
         pl.figure(figsize=(7,6))
     if photoz < 0.4:
@@ -272,3 +281,31 @@ def getRich(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True):
     return rich,bic1,bic2
 
 
+#---------measure the truth table - ------
+"""
+truthCat = gl.glob('/home/jghao/research/data/des_mock/v3.04/truthCat/*.fit')
+obsCat = gl.glob('/home/jghao/research/data/des_mock/v3.04/obsCat/*.fit')
+truthCat.sort()
+obsCat.sort()
+
+Nfile = len(truthCat)
+
+for i in range(Nfile):
+    galTrue = pf.getdata(truthCat[i])
+    bcgTrue = galTrue[galTrue.field('central') == 1]
+    galObs = pf.getdata(obsCat[i])
+    ra = bcgTrue.field('ra')
+    dec = bcgTrue.field('dec')
+    z = bcgTrue.field('z')
+    Nbcg = len(ra)
+    rich = np.zeros(Nbcg)
+    BIC1 = np.zeros(Nbcg)
+    BIC2 = np.zeros(Nbcg)
+    ID = np.zeros(Nbcg)
+    for j in range(Nbcg):
+        print j
+        rich[j],BIC1[j],BIC2[j] = getRich(ra[j],dec[j],z[j],mock = galObs, plot = False)
+    colNames = ['ra','dec','z','richness','BIC1','BIC2']
+    data = [ra,dec,z,rich,BIC1,BIC2]
+    hp.mwrfits('/home/jghao/research/data/des_mock/v3.04/obsCat_remeasure/osbCat_trueBCG_gmbcgRichness'+str(i)+'.fit', data, hdu = 1, colnames = colNames)
+"""

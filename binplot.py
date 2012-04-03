@@ -113,7 +113,7 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None):
 
 
 
-def bin_scatter(x,y,yerr=None,binsize=None,fmt=None,label=None,scatter=False,axes=None):
+def bin_scatter(x,y,yerr=None,binsize=None,fmt=None,label=None,scatter=False,axes=None,plot=True):
     h=histhao(x,binsize) 
     nbin=len(h[0])
     xm=np.zeros(nbin)
@@ -132,20 +132,21 @@ def bin_scatter(x,y,yerr=None,binsize=None,fmt=None,label=None,scatter=False,axe
                 sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
             if scatter == True:
                 sdym[i]=np.std(y[ind])
-    if axes is not None:
-        if fmt:
-            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+    if plot == True:
+        if axes is not None:
+            if fmt:
+                axes.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+            else:
+                axes.errorbar(xm,ym,yerr=sdym,fmt='ko')
+            if label:
+                axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
         else:
-            axes.errorbar(xm,ym,yerr=sdym,fmt='ko')
-        if label:
-            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
-    else:
-        if fmt:
-            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt)
-        else:
-            pl.errorbar(xm,ym,yerr=sdym,fmt='ko')
-        if label:
-            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
+            if fmt:
+                pl.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+            else:
+                pl.errorbar(xm,ym,yerr=sdym,fmt='ko')
+            if label:
+                pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
     return xm,ym,sdym
 
 

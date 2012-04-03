@@ -69,14 +69,14 @@ def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     sigma=np.array([0.04,0.3])
     if err is True:
         if rw is False:
-            bic2=gmm.bic_ecgmm(gmr[m2[indices]],gmrerr[m2[indices]],alpha,mu,sigma)
-            bic1=gmm.wstat(gmr[m2[indices]],gmrerr[m2[indices]])[3] 
+            aic2=gmm.aic_ecgmm(gmr[m2[indices]],gmrerr[m2[indices]],alpha,mu,sigma)
+            aic1=gmm.wstat(gmr[m2[indices]],gmrerr[m2[indices]])[3] 
         else:
-            bic2,alpha,mu,sigma=rwgmm.bic2EM(gmr[m2[indices]],gmrerr[m2[indices]],r12[indices],alpha,mu,sigma)
-            bic1=rwgmm.bic1EM(gmr[m2[indices]],gmrerr[m2[indices]],r12[indices])[0]
+            aic2,alpha,mu,sigma=rwgmm.aic2EM(gmr[m2[indices]],gmrerr[m2[indices]],r12[indices],alpha,mu,sigma)
+            aic1=rwgmm.aic1EM(gmr[m2[indices]],gmrerr[m2[indices]],r12[indices])[0]
     else:
-        bic2=gmm.bic_ecgmm(gmr[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
-        bic1=gmm.wstat(gmr[m2[indices]])[3] 
+        aic2=gmm.aic_ecgmm(gmr[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
+        aic1=gmm.wstat(gmr[m2[indices]])[3] 
     if plot==True:
         pl.hist(gmr[m2[indices]],bins=30,normed=True,facecolor='green',alpha=0.3)
         pl.vlines(cgmr,0,3,color='green')
@@ -91,11 +91,11 @@ def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.figtext(0.61,0.8,r'$\mu$: '+str(np.round(mu,4)))
         pl.figtext(0.61,0.75,r'$\sigma$: '+str(np.round(sigma,4)))
         pl.figtext(0.61,0.68,r'$Amplitude$: '+str(np.round(ntot*alpha[0],2)))
-        pl.figtext(0.61,0.61,r'$BIC_1$: '+str(bic1))
-        pl.figtext(0.61,0.54,r'$BIC_2$: '+str(bic2))
+        pl.figtext(0.61,0.61,r'$AIC_1$: '+str(aic1))
+        pl.figtext(0.61,0.54,r'$AIC_2$: '+str(aic2))
         pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0],bic1,bic2
+    return ntot*alpha[0],aic1,aic2,cgmr,alpha,mu,sigma
 
 def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
     fra=cat.field('ra')
@@ -122,14 +122,14 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     sigma=np.array([0.04,0.3])
     if err is True:              
         if rw is False:
-            bic2=gmm.bic_ecgmm(rmi[m2[indices]],rmierr[m2[indices]],alpha,mu,sigma)
-            bic1=gmm.wstat(rmi[m2[indices]],rmierr[m2[indices]])[3] 
+            aic2=gmm.aic_ecgmm(rmi[m2[indices]],rmierr[m2[indices]],alpha,mu,sigma)
+            aic1=gmm.wstat(rmi[m2[indices]],rmierr[m2[indices]])[3] 
         else:
-            bic2,alpha,mu,sigma=rwgmm.bic2EM(rmi[m2[indices]],rmierr[m2[indices]],r12[indices],alpha,mu,sigma)
-            bic1=rwgmm.bic1EM(rmi[m2[indices]],rmierr[m2[indices]],r12[indices])[0]
+            aic2,alpha,mu,sigma=rwgmm.aic2EM(rmi[m2[indices]],rmierr[m2[indices]],r12[indices],alpha,mu,sigma)
+            aic1=rwgmm.aic1EM(rmi[m2[indices]],rmierr[m2[indices]],r12[indices])[0]
     else:
-        bic2=gmm.bic_ecgmm(rmi[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
-        bic1=gmm.wstat(rmi[m2[indices]])[3] 
+        aic2=gmm.aic_ecgmm(rmi[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
+        aic1=gmm.wstat(rmi[m2[indices]])[3] 
     if plot==True:
         pl.hist(rmi[m2[indices]],bins=30,normed=True,facecolor='green',alpha=0.3)
         pl.vlines(crmi,0,3,color='green')
@@ -144,11 +144,11 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.figtext(0.61,0.8,r'$\mu$: '+str(np.round(mu,4)))
         pl.figtext(0.61,0.75,r'$\sigma$: '+str(np.round(sigma,4)))
         pl.figtext(0.61,0.68,r'$Amplitude$: '+str(np.round(ntot*alpha[0],2)))
-        pl.figtext(0.61,0.61,r'$BIC_1$: '+str(bic1))
-        pl.figtext(0.61,0.54,r'$BIC_2$: '+str(bic2))
+        pl.figtext(0.61,0.61,r'$AIC_1$: '+str(aic1))
+        pl.figtext(0.61,0.54,r'$AIC_2$: '+str(aic2))
         pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0],bic1,bic2
+    return ntot*alpha[0],aic1,aic2,crmi,alpha,mu,sigma
 
 def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
     fra=cat.field('ra')
@@ -175,14 +175,14 @@ def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     sigma=np.array([0.04,0.3])
     if err is True:
         if rw is False:
-            bic2=gmm.bic_ecgmm(imz[m2[indices]],imzerr[m2[indices]],alpha,mu,sigma)
-            bic1=gmm.wstat(imz[m2[indices]],imzerr[m2[indices]])[3] 
+            aic2=gmm.aic_ecgmm(imz[m2[indices]],imzerr[m2[indices]],alpha,mu,sigma)
+            aic1=gmm.wstat(imz[m2[indices]],imzerr[m2[indices]])[3] 
         else:
-            bic2,alpha,mu,sigma=rwgmm.bic2EM(imz[m2[indices]],imzerr[m2[indices]],r12[indices],alpha,mu,sigma)
-            bic1=rwgmm.bic1EM(imz[m2[indices]],imzerr[m2[indices]],r12[indices])[0]
+            aic2,alpha,mu,sigma=rwgmm.aic2EM(imz[m2[indices]],imzerr[m2[indices]],r12[indices],alpha,mu,sigma)
+            aic1=rwgmm.aic1EM(imz[m2[indices]],imzerr[m2[indices]],r12[indices])[0]
     else:
-        bic2=gmm.bic_ecgmm(imz[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
-        bic1=gmm.wstat(imz[m2[indices]])[3] 
+        aic2=gmm.aic_ecgmm(imz[m2[indices]],aalpha=alpha,mmu=mu,ssigma=sigma)
+        aic1=gmm.wstat(imz[m2[indices]])[3] 
     if plot==True:
         pl.hist(imz[m2[indices]],bins=30,normed=True,facecolor='green',alpha=0.3)
         pl.vlines(cimz,0,3,color='green')
@@ -197,13 +197,13 @@ def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.figtext(0.61,0.8,r'$\mu$: '+str(np.round(mu,4)))
         pl.figtext(0.61,0.75,r'$\sigma$: '+str(np.round(sigma,4)))
         pl.figtext(0.61,0.68,r'$Amplitude$: '+str(np.round(ntot*alpha[0],2)))
-        pl.figtext(0.61,0.61,r'$BIC_1$: '+str(bic1))
-        pl.figtext(0.61,0.54,r'$BIC_2$: '+str(bic2))
+        pl.figtext(0.61,0.61,r'$AIC_1$: '+str(aic1))
+        pl.figtext(0.61,0.54,r'$AIC_2$: '+str(aic2))
         pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0],bic1,bic2
+    return ntot*alpha[0],aic1,aic2,cimz,alpha,mu,sigma
 
-def getRichness(ra,dec,photoz,err=None,rw=None,bcg=True):
+def getRichness(ra,dec,photoz,err=True,rw=None,bcg=True,plot=True):
     if ra < 10:
         catid=0
     elif ra > 10 and ra < 20:
@@ -231,12 +231,16 @@ def getRichness(ra,dec,photoz,err=None,rw=None,bcg=True):
     coadd=pf.getdata('/home/jghao/research/data/coadd10_29_09/gmbcg_input_small_'+str(catid)+'.fit')
     pl.figure(figsize=(7,6))
     if photoz < 0.4:
-        rich,bic1,bic2=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg)
+        #rich,aic1,aic2,ccolor,alpha,mu,sigma=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
+        res=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
     elif photoz >= 0.4 and photoz < 0.75:
-        rich,bic1,bic2=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg)
+        #rich,aic1,aic2,ccolor,alpha,mu,sigma=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
+        res=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
     elif photoz >= 0.75:
-        rich,bic1,bic2=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg)
-    return rich,bic1,bic2
+        #rich,aic1,aic2,ccolor,alpha,mu,sigma=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
+        res=rich,aic1,aic2,ccolor,alpha,mu,sigma=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
+        #here res=[rich,aic1,aic2,ccolor,alpha,mu,sigma]
+    return res
 
 def getNeighbors(ra,dec,radius,photoz):
     """
