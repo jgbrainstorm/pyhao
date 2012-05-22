@@ -56,8 +56,6 @@ def wsdo(x,xerr):
     ws=np.sqrt(1./sum(w))
     return(ws)
 
-
-
 def histhao(x,bsize=None,bedge=None):
     if bedge is not None:
         d=np.histogram(x,bins=bedge)
@@ -162,7 +160,7 @@ def bin_hist(x,y,yerr=None,bins=None):
         ind=(x>=h[1][i])*(x<h[1][i+1])
         tt=x[ind]
         if len(tt) > 0:
-            if len(yerr)>0:
+            if yerr != None:
                 ym[i]=wmean(y[ind],yerr[ind])
                 sdym[i]=wsd(y[ind],yerr[ind])
             else:
@@ -192,12 +190,12 @@ def binboxplot(x,y,binsize=None):
     return 0
 
 
-def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None):
+def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None,format='%.3f'):
     h,xx,yy=np.histogram2d(x,y,bins=bins,range=range,normed=normed)
     xx=(xx[0:-1]+xx[1:])/2.
     yy=(yy[0:-1]+yy[1:])/2.
     pl.contourf(xx,yy,h.T,v=levels)
-    pl.colorbar()
+    pl.colorbar(format=format)
     return(0)
 
 

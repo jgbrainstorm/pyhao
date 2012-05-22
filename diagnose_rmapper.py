@@ -48,17 +48,17 @@ hp.mwrfits('/home/jghao/research/data/coadd10_29_09/redmapper/gmbcg_remeasure_BC
 bg = pf.getdata('/home/jghao/research/data/coadd10_29_09/redmapper/stripe82_bcgs_for_jiangang.fit')
 #bcg = pf.getdata('/home/jghao/research/data/coadd10_29_09/redmapper/gmbcg_remeasure_BCG_false_aic_rw_err.fit')
 bcg = pf.getdata('/home/jghao/research/data/coadd10_29_09/redmapper/gmbcg_remeasure_BCG_True_aic_rw_err.fit')
-idx = np.isnan(bcg.mu1) == False
+idx = ~np.isnan(bcg.mu1)
 bg=bg[idx]
 bcg=bcg[idx]
 
-ok = (bcg.aic2 -bcg.aic1 < 0)*(bcg.sigma0 <= bcg.sigma1)*(bcg.sigma0 < 0.2)
+ok = (bcg.aic2 -bcg.aic1 < 0)*(bcg.sigma0 <= bcg.sigma1)*(bcg.sigma0 < 0.15)
+#bad = bg.field('good') == 0
+#good = bg.field('good') == 1
 
-bad = bg.field('good') == 0
-good = bg.field('good') == 1
-
-pl.plot(bg.field('lambda'),bcg.rich,'b.',label='full sample',alpha = 1)
-pl.plot(bg[ok].field('lambda'),bcg[ok].rich,'r.',label = 'good center lambda')
+pl.plot(bg.field('lambda'),bcg.rich,'bo',label='Full Sample',alpha = 1)
+#pl.plot(bg[ok].field('lambda'),bcg[ok].rich,'r.',label = 'good center lambda')
+pl.plot(bg[ok].field('lambda'),bcg[ok].rich,'ro',label = 'Strict Model Definition')
 
 
 #pl.plot(bg[bad].field('lambda'),bcg[bad].rich,'r.',label = 'bad center lambda')
@@ -69,7 +69,7 @@ pl.xlabel('Lambda')
 pl.ylabel('GMBCG Richness')
 pl.legend(loc = 'best')
 pl.loglog()
-pl.ylim(0,1000)
+pl.ylim(1,200)
 
 #----separation -------
 wrongRem = (bcg.ccolor < bcg.mu1)*good
