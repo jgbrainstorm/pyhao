@@ -76,7 +76,7 @@ def logbin_edge(x,nbins,xrange=None):
     return np.append(xedge,xrange[1])
 
 
-def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None):
+def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,alpha=None):
     h=histhao(x,bedge=binedge) 
     nbin=len(h[0])
     xm=np.zeros(nbin)
@@ -95,18 +95,18 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None):
                 sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
     if axes is not None:
         if fmt:
-            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,alpha=alpha)
         else:
-            axes.errorbar(xm,ym,yerr=sdym,fmt='ko')
+            axes.errorbar(xm,ym,yerr=sdym,fmt='ko',alpha=alpha)
         if label:
-            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
+            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label,alpha=alpha)
     else:
         if fmt:
-            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt)
+            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,alpha=alpha)
         else:
-            pl.errorbar(xm,ym,yerr=sdym,fmt='ko')
+            pl.errorbar(xm,ym,yerr=sdym,fmt='ko',alpha=alpha)
         if label:
-            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label)
+            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label,alpha=alpha)
     return xm,ym,sdym
 
 
@@ -199,8 +199,8 @@ def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None,format='%
     return(0)
 
 
-def bin_scatter_logx(x,y,yerr=None,nbins=None,xrange=None,fmt=None,label=None,axes=None):
+def bin_scatter_logx(x,y,yerr=None,nbins=None,xrange=None,fmt=None,label=None,axes=None,alpha=None):
     binedge = logbin_edge(x,nbins,xrange=xrange)
-    xm,ym,sdym=bin_scatter_bins(x,y,yerr=yerr,binedge=binedge,fmt=fmt,label=label,axes=axes)
+    xm,ym,sdym=bin_scatter_bins(x,y,yerr=yerr,binedge=binedge,fmt=fmt,label=label,axes=axes,alpha=alpha)
     return xm,ym,sdym
 
