@@ -22,9 +22,10 @@ sigma0 = np.zeros(N)
 sigma1 = np.zeros(N)
 ccolor = np.zeros(N)
 colnames = ['rich','aic1','aic2','ccolor','alpha0','alpha1','mu0','mu1','sigma0','sigma1']
+radius=1.5
 for i in range(N):
     print i
-    res = rh.getRichness(bg[i].field('ra'),bg[i].field('dec'),bg[i].field('z_lambda'),bcg=True,plot=True,err=True)
+    res = rh.getRichness(bg[i].field('ra'),bg[i].field('dec'),bg[i].field('z_lambda'),bcg=True,plot=True,err=True,radius=radius)
     pl.savefig('/home/jghao/research/data/coadd10_29_09/redmapper/fig_aic_rw_err/'+str(i)+'.png')
     pl.close()
     if len(res)==7:        

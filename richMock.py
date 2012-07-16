@@ -281,31 +281,33 @@ def getRich(ra,dec,photoz,mock=None,err=True,rw=True,bcg=True,plot=True):
     return rich,aic1,aic2
 
 
-#---------measure the truth table - ------
-"""
-truthCat = gl.glob('/home/jghao/research/data/des_mock/v3.04/truthCat/*.fit')
-obsCat = gl.glob('/home/jghao/research/data/des_mock/v3.04/obsCat/*.fit')
-truthCat.sort()
-obsCat.sort()
+if __name__=='__main__':
+    #---------measure the truth table - ------
+    truthCat = gl.glob('/home/jghao/research/data/des_mock/v4.00/truthCat/*.fit')
+    obsCat = gl.glob('/home/jghao/research/data/des_mock/v4.00/obsCat/*.fit')
+    truthCat.sort()
+    obsCat.sort()
 
-Nfile = len(truthCat)
+    Nfile = len(truthCat)
 
-for i in range(Nfile):
-    galTrue = pf.getdata(truthCat[i])
-    bcgTrue = galTrue[galTrue.field('central') == 1]
-    galObs = pf.getdata(obsCat[i])
-    ra = bcgTrue.field('ra')
-    dec = bcgTrue.field('dec')
-    z = bcgTrue.field('z')
-    Nbcg = len(ra)
-    rich = np.zeros(Nbcg)
-    AIC1 = np.zeros(Nbcg)
-    AIC2 = np.zeros(Nbcg)
-    ID = np.zeros(Nbcg)
-    for j in range(Nbcg):
-        print j
-        rich[j],AIC1[j],AIC2[j] = getRich(ra[j],dec[j],z[j],mock = galObs, plot = False)
-    colNames = ['ra','dec','z','richness','AIC1','AIC2']
-    data = [ra,dec,z,rich,AIC1,AIC2]
-    hp.mwrfits('/home/jghao/research/data/des_mock/v3.04/obsCat_remeasure/osbCat_trueBCG_gmbcgRichness'+str(i)+'.fit', data, hdu = 1, colnames = colNames)
-"""
+    for i in range(Nfile):
+        galTrue = pf.getdata(truthCat[i])
+        bcgTrue = galTrue[(galTrue.field('central') == 1)*(galTrue.field('m200') >=5.e13)]
+        galObs = pf.getdata(obsCat[i])
+        ra = bcgTrue.field('ra')
+        dec = bcgTrue.field('dec')
+        z = bcgTrue.field('z')
+        Nbcg = len(ra)
+        rich = np.zeros(Nbcg)
+        AIC1 = np.zeros(Nbcg)
+        AIC2 = np.zeros(Nbcg)
+        ID = np.zeros(Nbcg)
+        for j in range(Nbcg):
+            print j
+            rich[j],AIC1[j],AIC2[j] = getRich(ra[j],dec[j],z[j],mock = galObs, plot = True,rw=False)
+            pl.savefig('/home/jghao/research/data/des_mock/v4.00/obsCat_remeasure/osbCat_trueBCG_gmbcgRichness_norw_'+str(i)+'_'+str(j)+'.png')
+            pl.close()
+        colNames = ['ra','dec','z','richness','AIC1','AIC2']
+        data = [ra,dec,z,rich,AIC1,AIC2]
+        hp.mwrfits('/home/jghao/research/data/des_mock/v4.00/obsCat_remeasure/osbCat_trueBCG_gmbcgRichness_'+str(i)+'_norw_errTrue.fit', data, hdu = 1, colnames = colNames)
+    

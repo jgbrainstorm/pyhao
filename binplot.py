@@ -2,6 +2,12 @@ import pyfits as pf
 import pylab as pl
 import numpy as np
 import scipy.signal as sg
+import os
+
+def display():
+    pl.savefig('temp.png')
+    os.system('display temp.png')
+    return 0
 
 def remOutlier(x):
     y=x
@@ -15,6 +21,73 @@ def remOutlier(x):
     ok = (y>lowFense)*(y<highFense)
     indx=np.arange(n)
     return indx[ok]
+
+
+def robust_mean(x):
+    y = x.flatten()
+    if len(np.unique(y))==1:
+        meany=y[0]
+    else:
+        n = len(y)
+        y.sort()
+        ind_qt1 = round((n+1)/4.)
+        ind_qt3 = round((n+1)*3/4.)
+        IQR = y[ind_qt3]- y[ind_qt1]
+        lowFense = y[ind_qt1] - 1.5*IQR
+        highFense = y[ind_qt3] + 1.5*IQR
+        if lowFense == highFense:
+            meany=lowFense
+        else:
+            ok = (y>lowFense)*(y<highFense)
+            yy=y[ok]
+            meany=yy.mean(dtype='double')
+    return meany
+
+
+#-------Robust Standard Deviation---
+
+def robust_std(x):
+    y = x.flatten()
+    if len(np.unique(y))==0:
+        stdy=0.
+    else:
+        n = len(y)
+        y.sort()
+        ind_qt1 = round((n+1)/4.)
+        ind_qt3 = round((n+1)*3/4.)
+        IQR = y[ind_qt3]- y[ind_qt1]
+        lowFense = y[ind_qt1] - 1.5*IQR
+        highFense = y[ind_qt3] + 1.5*IQR
+        if lowFense == highFense:
+            stdy=lowFense
+        else:
+            ok = (y>lowFense)*(y<highFense)
+            yy=y[ok]
+            stdy=yy.std(dtype='double')
+    return stdy
+
+#-------Robust Standard Deviation of the mean---
+
+def robust_stdm(x):
+    y = x.flatten()
+    if len(np.unique(y))==0:
+        stdy=0.
+    else:
+        n = len(y)
+        y.sort()
+        ind_qt1 = round((n+1)/4.)
+        ind_qt3 = round((n+1)*3/4.)
+        IQR = y[ind_qt3]- y[ind_qt1]
+        lowFense = y[ind_qt1] - 1.5*IQR
+        highFense = y[ind_qt3] + 1.5*IQR
+        if lowFense == highFense:
+            stdym=lowFense
+        else:
+            ok = (y>lowFense)*(y<highFense)
+            yy=y[ok]
+            stdym=yy.std(dtype='double')/np.sqrt(len(yy))
+    return stdym
+
 
 
 def wmean(x,xerr):
@@ -64,7 +137,7 @@ def histhao(x,bsize=None,bedge=None):
         d=np.histogram(x,bins=nbin)
     return d
 
-def logbin_edge(x,nbins,xrange=None):
+def logbin_edge(x=None,nbins=None,xrange=None):
     if xrange is None:
         rng = np.log10(x.max()) - np.log10(x.min())
         step = rng / float(nbins)
@@ -73,7 +146,11 @@ def logbin_edge(x,nbins,xrange=None):
         rng = np.log10(xrange[1]) - np.log10(xrange[0])
         step = rng / float(nbins)
         xedge = 10**np.arange(np.log10(xrange[0]),np.log10(xrange[1]),step)
-    return np.append(xedge,xrange[1])
+    if xedge[-1] == xrange[1]:
+        res = xedge
+    else:
+        res = np.append(xedge,xrange[1])
+    return res
 
 
 def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,alpha=None):
@@ -91,6 +168,8 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,al
                 ym[i]=wmeano(y[ind],yerr[ind])
                 sdym[i]=wsdo(y[ind],yerr[ind])
             else:
+                #ym[i] = robust_mean(y[ind])
+                #sdym[i] = robust_stdm(y[ind])
                 ym[i]=np.mean(y[ind])
                 sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
     if axes is not None:
@@ -173,6 +252,22 @@ def bin_hist(x,y,yerr=None,bins=None):
             pl.text(0.1,0.7,'Sd_M: '+str(round(sdym[i],5)),transform = ax.transAxes)
             pl.title('Bins: '+str(round(h[1][i],2))+'-'+str(round(h[1][i+1],2)))
 
+
+
+def bin_hist_logx(x,y,nbins=None,xrange=None):
+    if xrange is None:
+        xrange=[x.min(),x.max()]
+    binedge = logbin_edge(x,nbins,xrange=xrange)
+    for i in range(nbins):
+        pl.figure()
+        ind = (x >= binedge[i])*(x <= binedge[i+1])
+        pl.hist(y[ind],bins=30)
+        pl.title('bin: '+str(i))
+        pl.figtext(0.5,0.8,'Mean: '+str(y[ind].mean()))
+        pl.figtext(0.5,0.75,'Std: '+str(y[ind].std()))
+    return 0
+
+    
 
 def binboxplot(x,y,binsize=None):
     h=histhao(x,binsize) 

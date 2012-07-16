@@ -65,7 +65,7 @@ def gmrbgcount(cat,gmr_low,gmr_high,imag_low,imag_high):
     gmrkde=sts.gaussian_kde(gmrvalues.T)
     bgct=gmrkde.integrate_box([gmr_low,imag_low],[gmr_high,imag_high]) * dsty
     
-def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
+def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True,radius=1.):
     fra=cat.field('ra')
     fdec=cat.field('dec')
     imag=cat.field('model_counts')[:,3]
@@ -73,7 +73,7 @@ def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     gmrerr=cat.field('gmr_err')
     depth=12
     h=es.htm.HTM(depth)
-    srad=np.rad2deg(1./Da(0,photoz))
+    srad=np.rad2deg(radius/Da(0,photoz))
     m1,m2,d12 = h.match(ra,dec,fra,fdec,srad,maxmatch=5000)
     cimag=imag[m2[0]]
     cgmr=gmr[m2[0]]
@@ -120,7 +120,7 @@ def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.title('Total # of galaxies: '+str(ntot))
     return ntot*alpha[0],aic1,aic2,cgmr,alpha,mu,sigma,z
 
-def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
+def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True,radius=1.):
     fra=cat.field('ra')
     fdec=cat.field('dec')
     imag=cat.field('model_counts')[:,3]
@@ -128,7 +128,7 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     rmierr=cat.field('rmi_err')
     depth=12
     h=es.htm.HTM(depth)
-    srad=np.rad2deg(1./Da(0,photoz))
+    srad=np.rad2deg(radius/Da(0,photoz))
     m1,m2,d12 = h.match(ra,dec,fra,fdec,srad,maxmatch=5000)
     r12=np.deg2rad(d12)*Da(0,photoz)
     cimag=imag[m2[0]]
@@ -175,7 +175,7 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.title('Total # of galaxies: '+str(ntot))
     return ntot*alpha[0],aic1,aic2,crmi,alpha,mu,sigma,z
 
-def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
+def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True,radius=1.):
     fra=cat.field('ra')
     fdec=cat.field('dec')
     imag=cat.field('model_counts')[:,3]
@@ -183,7 +183,7 @@ def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     imzerr=cat.field('imz_err')
     depth=12
     h=es.htm.HTM(depth)
-    srad=np.rad2deg(1./Da(0,photoz))
+    srad=np.rad2deg(radius/Da(0,photoz))
     m1,m2,d12 = h.match(ra,dec,fra,fdec,srad,maxmatch=5000)
     cimag=imag[m2[0]]
     cimz=imz[m2[0]]
@@ -230,7 +230,7 @@ def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.title('Total # of galaxies: '+str(ntot))
     return ntot*alpha[0],aic1,aic2,cimz,alpha,mu,sigma
 
-def getRichness(ra,dec,photoz,err=True,rw=None,bcg=True,plot=True):
+def getRichness(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True,radius=1.):
     if ra < 10:
         catid=0
     elif ra > 10 and ra < 20:
@@ -259,13 +259,13 @@ def getRichness(ra,dec,photoz,err=True,rw=None,bcg=True,plot=True):
     pl.figure(figsize=(7,6))
     if photoz < 0.4:
         #rich,aic1,aic2,ccolor,alpha,mu,sigma=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
-        res=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
+        res=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
     elif photoz >= 0.4 and photoz < 0.75:
         #rich,aic1,aic2,ccolor,alpha,mu,sigma=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
-        res=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
+        res=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
     elif photoz >= 0.75:
         #rich,aic1,aic2,ccolor,alpha,mu,sigma=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
-        res=rich,aic1,aic2,ccolor,alpha,mu,sigma=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
+        res=rich,aic1,aic2,ccolor,alpha,mu,sigma=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
         #here res=[rich,aic1,aic2,ccolor,alpha,mu,sigma]
     return res
 
