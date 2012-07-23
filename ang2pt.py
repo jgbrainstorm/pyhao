@@ -1,3 +1,12 @@
+# ------------------------------------------------------------------------
+# This code calculate the two point angular correlation. 
+# using the Landy - Szalay estimator. It has been tested by running
+# on the SDSS data and compared with the results from Connolly et al 2002
+# and get consistent results.
+# Created by: J. Hao, 2011 @ Fermilab
+# report bugs to: J. Hao, jghao@fnal.gov
+#-------------------------------------------------------------------------- 
+
 import numpy as np
 import pyfits as pf
 import pylab as pl
@@ -74,7 +83,9 @@ def getAng2Pt(galRA=None,galDEC=None,randRA=None,randDEC=None,galZ=None,randZ=No
     gg = gg/2.
     rr = rr/2.
     gr = gr/2.
-    w = (gg - 2.*gr + rr)/rr
+    Ng = len(gg).astype('f')
+    Nr = len(rr).astype('f')
+    w = (gg*Nr**2/Ng**2 - 2.*gr*Nr/Ng + rr)/rr
     wErr = np.sqrt((1+w)/gg) 
     sep = 0.5*(binedge[0:-1]+binedge[1:])
     return sep,w, wErr
@@ -99,6 +110,7 @@ if __name__ == "__main__":
    galZ = gal.field('photoz')
    randZ = rand.field('photoz')
 
+   # --- calculate correlation in degree -----
    sep,w,wErr = getAng2Pt(galRA=galRA,galDEC=galDEC,randRA=randRA,randDEC=randDEC,galZ=galZ,randZ=randZ,srad=15.,zmin=zmin,zmax=zmax,zdiff=zdiff,nbins=10,angle=True,binrange=[0.05,10])
 
    #----making plot ------
@@ -110,11 +122,13 @@ if __name__ == "__main__":
    pl.xlabel(r'$\theta$' +' [deg]',fontsize=18)
    pl.ylabel(r'$\xi(\theta)$',fontsize=18)
   
-   sep,w,wErr = getAng2Pt(galRA=galRA,galDEC=galDEC,randRA=randRA,randDEC=randDEC,galZ=galZ,randZ=randZ,srad=10.,zmin=zmin,zmax=zmax,zdiff=zdiff,nbins=10,angle=False,binrange=[1,50])
+   # --- calculate correlation in Mpc ---
+   sep,w,wErr = getAng2Pt(galRA=galRA,galDEC=galDEC,randRA=randRA,randDEC=randDEC,galZ=galZ,randZ=randZ,srad=15.,zmin=zmin,zmax=zmax,zdiff=zdiff,nbins=15,angle=False,binrange=[1,50])
+   # --- making plot ----
    pl.errorbar(sep,w, yerr=wErr,fmt='bo')
    pl.loglog()
    pl.ylim(0.0001,100)
-   pl.xlim(1,50)
+   pl.xlim(1,100)
    pl.xlabel(r'$r$' +' [Mpc]',fontsize=18)
    pl.ylabel(r'$\xi(r)$',fontsize=18)
 
