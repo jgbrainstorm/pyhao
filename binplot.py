@@ -153,7 +153,7 @@ def logbin_edge(x=None,nbins=None,xrange=None):
     return res
 
 
-def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,alpha=None):
+def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,alpha=None,plot=True):
     h=histhao(x,bedge=binedge) 
     nbin=len(h[0])
     xm=np.zeros(nbin)
@@ -172,20 +172,21 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,al
                 #sdym[i] = robust_stdm(y[ind])
                 ym[i]=np.mean(y[ind])
                 sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
-    if axes is not None:
-        if fmt:
-            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,alpha=alpha)
+    if plot == True:
+        if axes is not None:
+            if fmt:
+                axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,alpha=alpha)
+            else:
+                axes.errorbar(xm,ym,yerr=sdym,fmt='ko',alpha=alpha)
+            if label:
+                axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label,alpha=alpha)
         else:
-            axes.errorbar(xm,ym,yerr=sdym,fmt='ko',alpha=alpha)
-        if label:
-            axes.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label,alpha=alpha)
-    else:
-        if fmt:
-            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,alpha=alpha)
-        else:
-            pl.errorbar(xm,ym,yerr=sdym,fmt='ko',alpha=alpha)
-        if label:
-            pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label,alpha=alpha)
+            if fmt:
+                pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,alpha=alpha)
+            else:
+                pl.errorbar(xm,ym,yerr=sdym,fmt='ko',alpha=alpha)
+            if label:
+                pl.errorbar(xm,ym,yerr=sdym,fmt=fmt,label=label,alpha=alpha)
     return xm,ym,sdym
 
 
@@ -294,8 +295,8 @@ def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None,format='%
     return(0)
 
 
-def bin_scatter_logx(x,y,yerr=None,nbins=None,xrange=None,fmt=None,label=None,axes=None,alpha=None):
+def bin_scatter_logx(x,y,yerr=None,nbins=None,xrange=None,fmt=None,label=None,axes=None,alpha=None,plot=True):
     binedge = logbin_edge(x,nbins,xrange=xrange)
-    xm,ym,sdym=bin_scatter_bins(x,y,yerr=yerr,binedge=binedge,fmt=fmt,label=label,axes=axes,alpha=alpha)
+    xm,ym,sdym=bin_scatter_bins(x,y,yerr=yerr,binedge=binedge,fmt=fmt,label=label,axes=axes,alpha=alpha,plot=plot)
     return xm,ym,sdym
 

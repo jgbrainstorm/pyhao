@@ -13,6 +13,7 @@ import pylab as pl
 import esutil as es
 from binplot import *
 Da = es.cosmology.Cosmo(h=0.7).Da
+Dc = es.cosmology.Cosmo(h=0.7).Dc # comoving distance
 
 
 def subsetIDX(x,xmin,xmax):
@@ -54,21 +55,21 @@ def getAng2Pt(galRA=None,galDEC=None,randRA=None,randDEC=None,galZ=None,randZ=No
     gin1 = gin1[ok]
     gin2 = gin2[ok]
     gd12 = gd12[ok] # in angle, deg
-    gdr12=np.deg2rad(gd12)*Da(0,(galZ[gin1]+galZ[gin2])/2.)
+    gdr12=np.deg2rad(gd12)*Dc(0,(galZ[gin1]+galZ[gin2])/2.)
     #-----rand vs. rand ---
     rin1,rin2,rd12 = h.match(randRA,randDEC,randRA,randDEC,srad,maxmatch=5000)
     ok = np.abs(randZ[rin1]-randZ[rin2])<= zdiff
     rin1 = rin1[ok]
     rin2 = rin2[ok]
     rd12 = rd12[ok] # in angle, deg
-    rdr12=np.deg2rad(rd12)*Da(0,(randZ[rin1]+randZ[rin2])/2.)
+    rdr12=np.deg2rad(rd12)*Dc(0,(randZ[rin1]+randZ[rin2])/2.)
     #----- gal vs. rand ---
     grin1,grin2,grd12 = h.match(galRA,galDEC,randRA,randDEC,srad,maxmatch=5000)
     ok = np.abs(galZ[grin1]-randZ[grin2])<= zdiff
     grin1 = grin1[ok]
     grin2 = grin2[ok]
     grd12 = grd12[ok] # in angle, deg
-    grdr12=np.deg2rad(grd12)*Da(0,(galZ[grin1]+randZ[grin2])/2.)
+    grdr12=np.deg2rad(grd12)*Dc(0,(galZ[grin1]+randZ[grin2])/2.)
     # --in terms of physical separation ------
     if angle == False:
         binedge = logbin_edge(nbins=nbins,xrange=binrange)
@@ -83,8 +84,8 @@ def getAng2Pt(galRA=None,galDEC=None,randRA=None,randDEC=None,galZ=None,randZ=No
     gg = gg/2.
     rr = rr/2.
     gr = gr/2.
-    Ng = len(gg).astype('f')
-    Nr = len(rr).astype('f')
+    Ng = float(len(gg))
+    Nr = float(len(rr))
     w = (gg*Nr**2/Ng**2 - 2.*gr*Nr/Ng + rr)/rr
     wErr = np.sqrt((1+w)/gg) 
     sep = 0.5*(binedge[0:-1]+binedge[1:])
