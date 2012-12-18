@@ -191,7 +191,9 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,al
 
 
 
-def bin_scatter(x,y,yerr=None,binsize=None,fmt=None,label=None,scatter=False,axes=None,plot=True):
+def bin_scatter(x,y,yerr=None,binsize=None,nbins=None,fmt=None,label=None,scatter=False,axes=None,plot=True):
+    if nbins != None:
+        binsize = (np.max(x) - np.min(x))/float(nbins)
     h=histhao(x,binsize) 
     nbin=len(h[0])
     xm=np.zeros(nbin)

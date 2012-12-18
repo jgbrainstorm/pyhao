@@ -179,17 +179,32 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     return ntot*alpha[0],aic1,aic2,crmi,alpha,mu,sigma,z
 
 
-def getRichness(ra,dec,photoz,stripe,err=True,rw=None,bcg=True,plot=True):
+def getRichness(ra,dec,photoz,stripe,err=True,rw=True,bcg=True,plot=True,iter=True):
     dr7=pf.getdata('/home/jghao/research/data/sdss_dr7_input/dered_DR7_Input_catalog_stripe'+str(int(stripe))+'.fit')
+    ridgeline_z = 0.
     pl.figure(figsize=(7,6))
-    if photoz < 0.4:
-        #rich,aic1,aic2,ccolor,alpha,mu,sigma=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
-        res=GMRrichness(ra,dec,photoz,dr7,err=err,rw=rw,bcg=bcg,plot=plot)
-    elif photoz >= 0.4 and photoz < 0.75:
-        #rich,aic1,aic2,ccolor,alpha,mu,sigma=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
-        res=RMIrichness(ra,dec,photoz,dr7,err=err,rw=rw,bcg=bcg,plot=plot)
+    if iter == True:
+        for itr in range(5):
+            print '---iteration: '+str(itr)+' ----'
+            zdiff = abs(photoz - ridgeline_z)
+            if zdiff <= 0.03:
+                break
+            else:
+                pl.close()
+                if itr != 0:
+                    photoz = ridgeline_z
+                if photoz < 0.4:
+                    res=GMRrichness(ra,dec,photoz,dr7,err=err,rw=rw,bcg=bcg,plot=plot)
+                elif photoz >= 0.4 and photoz < 0.75:
+                    res=RMIrichness(ra,dec,photoz,dr7,err=err,rw=rw,bcg=bcg,plot=plot)
+                ridgeline_z = res[-1]
+    else:
+        if photoz < 0.4:
+            res=GMRrichness(ra,dec,photoz,dr7,err=err,rw=rw,bcg=bcg,plot=plot)
+        elif photoz >= 0.4 and photoz < 0.75:
+            res=RMIrichness(ra,dec,photoz,dr7,err=err,rw=rw,bcg=bcg,plot=plot)
     printlink(ra,dec)
-        #here res=[rich,aic1,aic2,ccolor,alpha,mu,sigma]
+        #here res=[rich,aic1,aic2,ccolor,alpha,mu,sigma,ridgeline_z]
     return res
 
 

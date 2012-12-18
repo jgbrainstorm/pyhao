@@ -228,9 +228,9 @@ def IMZrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
         pl.figtext(0.61,0.4,'ridgeline Z: '+str(z))
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0],aic1,aic2,cimz,alpha,mu,sigma
+    return ntot*alpha[0],aic1,aic2,cimz,alpha,mu,sigma,z
 
-def getRichness(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True,radius=1.):
+def getRichness(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True,radius=1.,iter=True):
     if ra < 10:
         catid=0
     elif ra > 10 and ra < 20:
@@ -256,17 +256,35 @@ def getRichness(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True,radius=1.):
     elif ra >350 and ra < 360:
         catid=11
     coadd=pf.getdata('/home/jghao/research/data/coadd10_29_09/gmbcg_input_small_'+str(catid)+'.fit')
+    ridgeline_z = 0.
     pl.figure(figsize=(7,6))
-    if photoz < 0.4:
-        #rich,aic1,aic2,ccolor,alpha,mu,sigma=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
-        res=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
-    elif photoz >= 0.4 and photoz < 0.75:
-        #rich,aic1,aic2,ccolor,alpha,mu,sigma=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
-        res=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
-    elif photoz >= 0.75:
-        #rich,aic1,aic2,ccolor,alpha,mu,sigma=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot)
-        res=rich,aic1,aic2,ccolor,alpha,mu,sigma=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
-        #here res=[rich,aic1,aic2,ccolor,alpha,mu,sigma]
+    if iter == True:
+        for itr in range(5):
+            print '---iteration: '+str(itr)+' ----'
+            zdiff = abs(photoz - ridgeline_z)
+            if zdiff <= 0.03:
+                break
+            elif ridgeline_z <= 0 and itr >0:
+                break
+            else:
+                pl.close()
+                if itr != 0:
+                    photoz = ridgeline_z
+                if photoz < 0.4:
+                    res=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
+                elif photoz >= 0.4 and photoz < 0.75:
+                    res=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
+                elif photoz >= 0.75:
+                    res=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
+                ridgeline_z = res[-1]
+        #here res=[rich,aic1,aic2,ccolor,alpha,mu,sigma,z]
+    else:
+        if photoz < 0.4:
+            res=GMRrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
+        elif photoz >= 0.4 and photoz < 0.75:
+            res=RMIrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
+        elif photoz >= 0.75:
+            res=IMZrichness(ra,dec,photoz,coadd,err=err,rw=rw,bcg=bcg,plot=plot,radius=radius)
     return res
 
 def getNeighbors(ra,dec,radius,photoz):
