@@ -153,7 +153,7 @@ def logbin_edge(x=None,nbins=None,xrange=None):
     return res
 
 
-def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,alpha=None,plot=True):
+def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,alpha=None,plot=True,robust=False):
     h=histhao(x,bedge=binedge) 
     nbin=len(h[0])
     xm=np.zeros(nbin)
@@ -168,10 +168,12 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,al
                 ym[i]=wmeano(y[ind],yerr[ind])
                 sdym[i]=wsdo(y[ind],yerr[ind])
             else:
-                #ym[i] = robust_mean(y[ind])
-                #sdym[i] = robust_stdm(y[ind])
-                ym[i]=np.mean(y[ind])
-                sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
+                if robust == True:
+                    ym[i] = robust_mean(y[ind])
+                    sdym[i] = robust_stdm(y[ind])
+                else:
+                    ym[i]=np.mean(y[ind])
+                    sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
     if plot == True:
         if axes is not None:
             if fmt:
@@ -191,7 +193,7 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,al
 
 
 
-def bin_scatter(x,y,yerr=None,binsize=None,nbins=None,fmt=None,label=None,scatter=False,axes=None,plot=True):
+def bin_scatter(x,y,yerr=None,binsize=None,nbins=None,fmt=None,label=None,scatter=False,axes=None,plot=True,robust=False):
     if nbins != None:
         binsize = (np.max(x) - np.min(x))/float(nbins)
     h=histhao(x,binsize) 
@@ -211,7 +213,11 @@ def bin_scatter(x,y,yerr=None,binsize=None,nbins=None,fmt=None,label=None,scatte
                 ym[i]=np.mean(y[ind])
                 sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
             if scatter == True:
-                sdym[i]=np.std(y[ind])
+                if robust == False:
+                    sdym[i]=np.std(y[ind])
+                else:
+                    ym[i]=robust_mean(y[ind])
+                    sdym[i]=robust_std(y[ind])
     if plot == True:
         if axes is not None:
             if fmt:
@@ -297,8 +303,8 @@ def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None,format='%
     return(0)
 
 
-def bin_scatter_logx(x,y,yerr=None,nbins=None,xrange=None,fmt=None,label=None,axes=None,alpha=None,plot=True):
+def bin_scatter_logx(x,y,yerr=None,nbins=None,xrange=None,fmt=None,label=None,axes=None,alpha=None,plot=True,robust=False):
     binedge = logbin_edge(x,nbins,xrange=xrange)
-    xm,ym,sdym=bin_scatter_bins(x,y,yerr=yerr,binedge=binedge,fmt=fmt,label=label,axes=axes,alpha=alpha,plot=plot)
+    xm,ym,sdym=bin_scatter_bins(x,y,yerr=yerr,binedge=binedge,fmt=fmt,label=label,axes=axes,alpha=alpha,plot=plot,robust=robust)
     return xm,ym,sdym
 

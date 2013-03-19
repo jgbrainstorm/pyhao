@@ -9,6 +9,16 @@ import glob as gl
 
 cosmoV = es.cosmology.Cosmo(h=0.7).V
 
+def nobj(dsty=0.00000015):
+    zbin=np.arange(0.05,0.6,0.05)
+    zmid = (zbin[:-1]+zbin[1:])/2.
+    nclu = np.zeros(len(zmid))
+    for i in range(len(nclu)):
+        nclu[i] = cosmoV(zmid[i]-0.025,zmid[i]+0.025)*dsty
+    pl.plot(zmid,nclu,'r--')
+
+
+
 def limi(x):
     A=np.exp(3.1638)
     k=0.1428
