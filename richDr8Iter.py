@@ -61,6 +61,19 @@ def limi0_2(x):
     return(lmi)
 
 
+#----trim outliers --------
+def trimOutlier(x):
+    y=x
+    n = len(x)
+    y.sort()
+    ind_qt1 = round((n+1)/4.)
+    ind_qt3 = round((n+1)*3/4.)
+    IQR = y[ind_qt3]- y[ind_qt1]
+    lowFense = y[ind_qt1] - 1.5*IQR
+    highFense = y[ind_qt3] + 1.5*IQR
+    ok = (y>lowFense)*(y<highFense)
+    return y[ok]
+
 #----define the stack of record array----
 
 def hstack2(arrays):
@@ -135,7 +148,7 @@ def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         indices=(imag[m2]<=limi0_2(photoz))
     ntot=len(m2[indices])
     if ntot <= 10:
-        return 0, 0, 0
+        return 'not enough galaxy brighter than 0.2 L*'
     alpha=np.array([0.5,0.5])
     mu=np.array([sts.scoreatpercentile(gmr[m2[indices]],per=70),sts.scoreatpercentile(gmr[m2[indices]],per=40)])
     sigma=np.array([0.04,0.3])
@@ -155,19 +168,22 @@ def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     sigma=sigma[srt]
     z = gmrz(mu[0])
     if plot==True:
-        pl.hist(gmr[m2[indices]],bins=30,normed=True,facecolor='green',alpha=0.3)
-        pl.vlines(cgmr,0,10,color='blue')
-        x=np.arange(-1,5,0.01)
+        pl.figure(figsize=(12,6))
+        pl.subplot(1,2,1)
+        hh=pl.hist(gmr[m2[indices]],bins=50,normed=True,facecolor='green',alpha=0.3,range=[-1,3])
+        pl.vlines(cgmr,0,hh[0].max()+0.5,color='red',lw=2,linestyle='dashed')
+        pl.grid()
+        x=np.arange(-1,3,0.01)
         t=gmm.ecgmmplot(x,alpha,mu,sigma)
         pl.xlabel('g - r')
-        pl.figtext(0.61,0.85,r'$\alpha$: '+str(np.round(alpha,4)))
-        pl.figtext(0.61,0.8,r'$\mu$: '+str(np.round(mu,4)))
-        pl.figtext(0.61,0.75,r'$\sigma$: '+str(np.round(sigma,4)))
-        pl.figtext(0.61,0.68,r'$Amplitude$: '+str(np.round(ntot*alpha[0],2)))
-        pl.figtext(0.61,0.61,r'$AIC_1$: '+str(aic1))
-        pl.figtext(0.61,0.54,r'$AIC_2$: '+str(aic2))
-        pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
-        pl.figtext(0.61,0.4,'ridgeline Z: '+str(round(z,3)))
+        pl.figtext(0.61,0.85,'Relative Weights: '+str(np.round(alpha,4)))
+        pl.figtext(0.61,0.8,'Mean Colors: '+str(np.round(mu,4)))
+        pl.figtext(0.61,0.75,'Mean Color Widths: '+str(np.round(sigma,4)))
+        pl.figtext(0.61,0.68,'Richness: '+str(np.round(ntot*alpha[0],2)))
+        pl.figtext(0.61,0.61,r'$AIC_1$: '+str(np.round(aic1,3)))
+        pl.figtext(0.61,0.54,r'$AIC_2$: '+str(np.round(aic2,3)))
+        pl.figtext(0.61,0.47,'Test Photoz: '+str(photoz))
+        pl.figtext(0.61,0.4,'Ridgeline Photoz: '+str(round(z,3)))
         pl.title('Total # of galaxies: '+str(ntot))
     return ntot*alpha[0],aic1,aic2,cgmr,alpha,mu,sigma,z
 
@@ -190,7 +206,7 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         indices=(imag[m2]<=limi0_2(photoz))
     ntot=len(m2[indices])
     if ntot <= 10:
-        return 0, 0, 0
+        return 'not enough galaxy brighter than 0.2 L*'
     alpha=np.array([0.5,0.5])
     mu=np.array([sts.scoreatpercentile(rmi[m2[indices]],per=70),sts.scoreatpercentile(rmi[m2[indices]],per=40)])
     sigma=np.array([0.04,0.3])
@@ -210,35 +226,41 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
     sigma=sigma[srt]
     z = rmiz(mu[0])
     if plot==True:
-        pl.hist(rmi[m2[indices]],bins=30,normed=True,facecolor='green',alpha=0.3)
-        pl.vlines(crmi,0,10,color='blue')
-        x=np.arange(-1,5,0.01)
+        pl.figure(figsize=(12,6))
+        pl.subplot(1,2,1)
+        hh=pl.hist(rmi[m2[indices]],bins=50,normed=True,facecolor='green',alpha=0.3,range=[-1,3])
+        pl.vlines(crmi,0,hh[0].max()+0.5,color='red',lw=2,linestyle='dashed')
+        pl.grid()
+        x=np.arange(-1,3,0.01)
         t=gmm.ecgmmplot(x,alpha,mu,sigma)
         pl.xlabel('r - i')
-        pl.figtext(0.61,0.85,r'$\alpha$: '+str(np.round(alpha,4)))
-        pl.figtext(0.61,0.8,r'$\mu$: '+str(np.round(mu,4)))
-        pl.figtext(0.61,0.75,r'$\sigma$: '+str(np.round(sigma,4)))
-        pl.figtext(0.61,0.68,r'$Amplitude$: '+str(np.round(ntot*alpha[0],2)))
+        pl.figtext(0.61,0.85,'Relative Weights: '+str(np.round(alpha,4)))
+        pl.figtext(0.61,0.8,'Mean Colors: '+str(np.round(mu,4)))
+        pl.figtext(0.61,0.75,'Mean Color Widths: '+str(np.round(sigma,4)))
+        pl.figtext(0.61,0.68,'Richness: '+str(np.round(ntot*alpha[0],2)))
         pl.figtext(0.61,0.61,r'$AIC_1$: '+str(aic1))
         pl.figtext(0.61,0.54,r'$AIC_2$: '+str(aic2))
-        pl.figtext(0.61,0.47,'Photoz: '+str(photoz))
-        pl.figtext(0.61,0.4,'ridgeline Z: '+str(round(z,3)))
+        pl.figtext(0.61,0.47,'Test Photoz: '+str(photoz))
+        pl.figtext(0.61,0.4,'Ridgeline Photoz: '+str(round(z,3)))
         pl.title('Total # of galaxies: '+str(ntot))
     return ntot*alpha[0],aic1,aic2,crmi,alpha,mu,sigma,z
 
 
-def getRichness(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True,iter=True):
+def getRichness(ra,dec,photoz,err=True,rw=True,bcg=False,plot=True,iter=True):
+    sdssradec(ra,dec)
     nside = 2**5
     hid = healpixIDradec(ra,dec,nside)
     nbids = hp.get_all_neighbours(nside,hid)
     dr8=readAllFile(hid,nbids,'/home/jghao/research/data/hpixFileDR8/')
+    if dr8 == -999:
+        return 'source is not in the sdss dr8 footprint'
     ridgeline_z = 0.
     pl.figure(figsize=(7,6))
     if iter == True:
         for itr in range(5):
             print '---iteration: '+str(itr)+' ----'
             zdiff = abs(photoz - ridgeline_z)
-            if zdiff <= 0.0001:
+            if zdiff <= 0.01:
                 break
             else:
                 pl.close()
@@ -248,7 +270,10 @@ def getRichness(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True,iter=True):
                     res=GMRrichness(ra,dec,photoz,dr8,err=err,rw=rw,bcg=bcg,plot=plot)
                 elif photoz >= 0.4 and photoz < 0.75:
                     res=RMIrichness(ra,dec,photoz,dr8,err=err,rw=rw,bcg=bcg,plot=plot)
-                ridgeline_z = res[-1]
+                if res == 'not enough galaxy brighter than 0.2 L*':
+                    return 'not enough galaxy brighter than 0.2 L*'
+                else:
+                    ridgeline_z = res[-1]
                 if ridgeline_z == 0:
                     ridgeline_z = ridgeline_z + 0.01
     else:
@@ -256,7 +281,6 @@ def getRichness(ra,dec,photoz,err=True,rw=True,bcg=True,plot=True,iter=True):
             res=GMRrichness(ra,dec,photoz,dr8,err=err,rw=rw,bcg=bcg,plot=plot)
         elif photoz >= 0.4 and photoz < 0.75:
             res=RMIrichness(ra,dec,photoz,dr8,err=err,rw=rw,bcg=bcg,plot=plot)
-    sdssradec(ra,dec)
         #here res=[rich,aic1,aic2,ccolor,alpha,mu,sigma,ridgeline_z]
     return res
 

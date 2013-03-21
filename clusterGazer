@@ -1,0 +1,21 @@
+#! /usr/bin/env python
+"""
+This code calculate measure the bimodal feature around a given sky position based on the SDSS DR8 data. 
+
+Created by: Jiangang Hao @ FNAL, 3/21/2013
+
+"""
+
+import sys
+
+if len(sys.argv) == 1:
+    print 'syntax: clusterGazer ra dec photoz'
+    print 'photoz is a test photoz you input'
+else:
+    import richDr8Iter as rh
+    rh.pl.ion()
+    try:
+	t=rh.getRichness(ra[i],dec[i],0.1)
+    except:
+        print '--- Position is not available ! --'    
+
