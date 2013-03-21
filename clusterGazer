@@ -18,10 +18,9 @@ else:
     dec = float(sys.argv[2])
     photoz = float(sys.argv[3])
     try:
-	t=rh.getRichness(ra,dec,photoz)
+	t=rh.getRichness(ra,dec,photoz)	
 	rh.pl.show()
-	raw_input('---hit enter to close the plot --')
-	rh.pl.close()
+	raw_input('---hit enter to go on --')
     except:
         print '--- Position is not available ! --'    
 
