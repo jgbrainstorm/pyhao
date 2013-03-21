@@ -20,6 +20,8 @@ else:
     try:
 	t=rh.getRichness(ra,dec,photoz)
 	rh.pl.show()
+	raw_input('---hit enter to close the plot --')
+	rh.pl.close()
     except:
         print '--- Position is not available ! --'    
 
