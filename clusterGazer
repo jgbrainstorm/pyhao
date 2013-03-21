@@ -10,12 +10,16 @@ import sys
 
 if len(sys.argv) == 1:
     print 'syntax: clusterGazer ra dec photoz'
-    print 'photoz is a test photoz you input'
+    print ' ---    photoz is a test photoz you input, the algorithm will'
+    print ' ---    iterate to get a photoz by fitting the red sequence'
 else:
     import richDr8Iter as rh
-    rh.pl.ion()
+    ra = float(sys.argv[1])
+    dec = float(sys.argv[2])
+    photoz = float(sys.argv[3])
     try:
-	t=rh.getRichness(ra[i],dec[i],0.1)
+	t=rh.getRichness(ra,dec,photoz)
+	rh.pl.show()
     except:
         print '--- Position is not available ! --'    
 
