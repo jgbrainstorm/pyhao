@@ -185,7 +185,7 @@ def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.figtext(0.61,0.54,r'$AIC_2$: '+str(np.round(aic2,3)))
         pl.figtext(0.61,0.47,'Test Photoz: '+str(photoz))
         pl.figtext(0.61,0.4,'Ridgeline Photoz: '+str(round(z,3)))
-        pl.figtext(0.61,0.33,'R200: '+str(round(0.09*richness**0.798,2)))
+        pl.figtext(0.61,0.33,'R200: '+str(round(0.09*richness**0.798,2))+' Mpc')
         pl.figtext(0.61,0.25,'M200: '+str(round(8.8*(richness/19.)**1.7,2))+'x10^13 Solar Mass')
         pl.title('Total # of galaxies: '+str(ntot))
     return richness,aic1,aic2,cgmr,alpha,mu,sigma,z
@@ -246,7 +246,7 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.figtext(0.61,0.54,r'$AIC_2$: '+str(aic2))
         pl.figtext(0.61,0.47,'Test Photoz: '+str(photoz))
         pl.figtext(0.61,0.4,'Ridgeline Photoz: '+str(round(z,3)))
-        pl.figtext(0.61,0.33,'R200: '+str(round(0.09*richness**0.798,2)))
+        pl.figtext(0.61,0.33,'R200: '+str(round(0.09*richness**0.798,2))+' Mpc')
         pl.figtext(0.61,0.25,'M200: '+str(round(8.8*(richness/19.)**1.7,2))+'x10^13 Solar Mass')
         pl.title('Total # of galaxies: '+str(ntot))
     return richness,aic1,aic2,crmi,alpha,mu,sigma,z
