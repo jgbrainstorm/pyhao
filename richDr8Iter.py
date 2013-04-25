@@ -175,17 +175,20 @@ def GMRrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.grid()
         x=np.arange(-1,3,0.01)
         t=gmm.ecgmmplot(x,alpha,mu,sigma)
+        richness = ntot*alpha[0]
         pl.xlabel('g - r')
         pl.figtext(0.61,0.85,'Relative Weights: '+str(np.round(alpha,4)))
         pl.figtext(0.61,0.8,'Mean Colors: '+str(np.round(mu,4)))
         pl.figtext(0.61,0.75,'Mean Color Widths: '+str(np.round(sigma,4)))
-        pl.figtext(0.61,0.68,'Richness: '+str(np.round(ntot*alpha[0],2)))
+        pl.figtext(0.61,0.68,'Richness: '+str(np.round(richness,2)))
         pl.figtext(0.61,0.61,r'$AIC_1$: '+str(np.round(aic1,3)))
         pl.figtext(0.61,0.54,r'$AIC_2$: '+str(np.round(aic2,3)))
         pl.figtext(0.61,0.47,'Test Photoz: '+str(photoz))
         pl.figtext(0.61,0.4,'Ridgeline Photoz: '+str(round(z,3)))
+        pl.figtext(0.61,0.33,'R200: '+str(round(0.09*richness**0.798,2)))
+        pl.figtext(0.61,0.25,'M200: '+str(round(8.8*(richness/19.)**1.7,2))+'x10^13 Solar Mass')
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0],aic1,aic2,cgmr,alpha,mu,sigma,z
+    return richness,aic1,aic2,cgmr,alpha,mu,sigma,z
 
 def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True,bcg=True):
     fra=cat.field('ra')
@@ -233,17 +236,20 @@ def RMIrichness(ra=None,dec=None,photoz=None,cat=None,plot=True,err=True,rw=True
         pl.grid()
         x=np.arange(-1,3,0.01)
         t=gmm.ecgmmplot(x,alpha,mu,sigma)
+        richness = ntot*alpha[0]
         pl.xlabel('r - i')
         pl.figtext(0.61,0.85,'Relative Weights: '+str(np.round(alpha,4)))
         pl.figtext(0.61,0.8,'Mean Colors: '+str(np.round(mu,4)))
         pl.figtext(0.61,0.75,'Mean Color Widths: '+str(np.round(sigma,4)))
-        pl.figtext(0.61,0.68,'Richness: '+str(np.round(ntot*alpha[0],2)))
+        pl.figtext(0.61,0.68,'Richness: '+str(np.round(richness,2)))
         pl.figtext(0.61,0.61,r'$AIC_1$: '+str(aic1))
         pl.figtext(0.61,0.54,r'$AIC_2$: '+str(aic2))
         pl.figtext(0.61,0.47,'Test Photoz: '+str(photoz))
         pl.figtext(0.61,0.4,'Ridgeline Photoz: '+str(round(z,3)))
+        pl.figtext(0.61,0.33,'R200: '+str(round(0.09*richness**0.798,2)))
+        pl.figtext(0.61,0.25,'M200: '+str(round(8.8*(richness/19.)**1.7,2))+'x10^13 Solar Mass')
         pl.title('Total # of galaxies: '+str(ntot))
-    return ntot*alpha[0],aic1,aic2,crmi,alpha,mu,sigma,z
+    return richness,aic1,aic2,crmi,alpha,mu,sigma,z
 
 
 def getRichness(ra,dec,photoz,err=True,rw=True,bcg=False,plot=True,iter=True):
