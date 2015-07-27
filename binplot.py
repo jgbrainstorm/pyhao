@@ -1,4 +1,4 @@
-import pyfits as pf
+
 import pylab as pl
 import numpy as np
 import scipy.signal as sg
@@ -153,7 +153,7 @@ def logbin_edge(x=None,nbins=None,xrange=None):
     return res
 
 
-def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,alpha=None,plot=True,robust=False):
+def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,alpha=None,plot=True,scatter=False,robust=False):
     h=histhao(x,bedge=binedge) 
     nbin=len(h[0])
     xm=np.zeros(nbin)
@@ -162,18 +162,20 @@ def bin_scatter_bins(x,y,yerr=None,binedge=None,fmt=None,label=None,axes=None,al
     for i in range(0,len(h[0])):
         ind=(x>=h[1][i])*(x<h[1][i+1])
         tt=x[ind]
-        if len(tt) > 0:
+        if len(tt) > 2:
             xm[i]=np.mean(x[ind])
             if yerr != None:
                 ym[i]=wmeano(y[ind],yerr[ind])
                 sdym[i]=wsdo(y[ind],yerr[ind])
             else:
-                if robust == True:
-                    ym[i] = robust_mean(y[ind])
-                    sdym[i] = robust_stdm(y[ind])
+                ym[i]=np.mean(y[ind])
+                sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
+            if scatter == True:
+                if robust == False:
+                    sdym[i]=np.std(y[ind])
                 else:
-                    ym[i]=np.mean(y[ind])
-                    sdym[i]=np.std(y[ind])/np.sqrt(len(y[ind]))
+                    ym[i]=robust_mean(y[ind])
+                    sdym[i]=robust_std(y[ind])
     if plot == True:
         if axes is not None:
             if fmt:
@@ -298,7 +300,7 @@ def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None,format='%
     h,xx,yy=np.histogram2d(x,y,bins=bins,range=range,normed=normed)
     xx=(xx[0:-1]+xx[1:])/2.
     yy=(yy[0:-1]+yy[1:])/2.
-    pl.contourf(xx,yy,h.T,v=levels)
+    pl.contourf(xx,yy,h.T,levels=levels)
     pl.colorbar(format=format)
     return(0)
 
