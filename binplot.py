@@ -3,7 +3,7 @@ import pylab as pl
 import numpy as np
 import scipy.signal as sg
 import os
-mport rpy2.robjects as robjects
+import rpy2.robjects as robjects
 import rpy2.robjects.numpy2ri
 py2.robjects.numpy2ri.activate()
 from rpy2.robjects.packages import importr
