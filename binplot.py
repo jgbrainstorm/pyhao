@@ -5,7 +5,7 @@ import scipy.signal as sg
 import os
 import rpy2.robjects as robjects
 import rpy2.robjects.numpy2ri
-py2.robjects.numpy2ri.activate()
+rpy2.robjects.numpy2ri.activate()
 from rpy2.robjects.packages import importr
 import pandas.rpy.common as com
 
