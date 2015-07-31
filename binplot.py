@@ -312,7 +312,7 @@ def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None,format='%
     return(0)
 
 def kde2d(x, y, bins=10, levels = None, format = '%.3f'):
-        dsty = MASS.kde2d(x,y,n=bins,h=np.array([MASS.width_SJ(x,nb=bins),MASS.width_SJ(y,nb=bins)]))
+        dsty = MASS.kde2d(x,y,n=bins,h=np.array([MASS.bandwidth.nrd(x),MASS.bandwidth.nrd(y)]))
         dsty2 = np.array(dsty[2])
         xx = np.array(dsty[0])
         yy = np.array(dsty[1])
