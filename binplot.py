@@ -3,6 +3,13 @@ import pylab as pl
 import numpy as np
 import scipy.signal as sg
 import os
+mport rpy2.robjects as robjects
+import rpy2.robjects.numpy2ri
+py2.robjects.numpy2ri.activate()
+from rpy2.robjects.packages import importr
+import pandas.rpy.common as com
+
+MASS = importr('MASS')
 
 def display():
     pl.savefig('temp.png')
@@ -303,6 +310,16 @@ def dsty(x,y,bins=None,range=None,normed=False,smooth=None,levels=None,format='%
     pl.contourf(xx,yy,h.T,levels=levels)
     pl.colorbar(format=format)
     return(0)
+
+def kde2d(x, y, bins=10, levels = None, format = '%.3f'):
+        dsty = MASS.kde2d(x,y,n=bins,h=np.array([MASS.width_SJ(x,nb=bins),MASS.width_SJ(y,nb=bins)]))
+        dsty2 = np.array(dsty[2])
+        xx = np.array(dsty[0])
+        yy = np.array(dsty[1])
+        pl.contourf(xx,yy,dsty2.T,levels = None)
+        pl.colorbar(format=format)
+        return dsty2
+
 
 
 def bin_scatter_logx(x,y,yerr=None,nbins=None,xrange=None,fmt=None,label=None,axes=None,alpha=None,plot=True,robust=False):
